@@ -1,1 +1,1 @@
-# JavaLab
+# OiAK projekt

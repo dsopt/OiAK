@@ -1,3 +1,2 @@
-﻿  BigInt.cpp
-C:\Users\Aleksandra\source\repos\OiAK\OiAK\BigInt.cpp(208): warning C4715: "BigInt::operator<”: niewszystkie ścieżki kodu zwracają wartość
+﻿  OiAK.cpp
   OiAK.vcxproj -> C:\Users\Aleksandra\source\repos\OiAK\Debug\OiAK.exe

@@ -5,7 +5,9 @@ private:
 	bool negative = false;
 	long size;
 	int *value;
-	int B = 10;
+	int B = 100000;
+	int digits = 5;
+	//int B = 100000000;
 	void setSize(long size);
 	void setValue(int* value);
 	void relocate(long size);
@@ -17,15 +19,19 @@ public:
 	BigInt operator-(BigInt& b);
 	BigInt operator+(BigInt& b);
 	BigInt operator*(BigInt& b);
+	BigInt operator/(BigInt& b);
 	bool operator==(BigInt& b);
 	bool operator<(BigInt& b);
 	bool operator>(BigInt& b);
 	bool operator<=(BigInt& b);
 	bool operator>=(BigInt& b);
 	bool operator!=(BigInt& b);
+	BigInt pow(BigInt& b);
+	BigInt toBinary();
 	bool isNegative();
 	long getSize();
 	int* getValue();
 	void print();
+	std::string toString();
 };
 

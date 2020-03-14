@@ -11,7 +11,7 @@ void BigInt::setValue(int* value){
 }
 
 void BigInt::relocate(long size){
-	//wypelniane tablicy zerami w celu wyrownania liczby bitow
+	//wypelniane tablicy zerami w celu rozszerzenia
 	int* newValue = new int[size];
 	for (int i = 0; i < this->getSize(); i++) {
 		newValue[i] = this->value[i];
@@ -39,9 +39,9 @@ void BigInt::relocate(){
 }
 
 int BigInt::isValueBiggerThan(BigInt& b){
-	//return 1 - yes
-	//return 0 - even values
-	//return -1 - no
+	//return 1 - tak
+	//return 0 - wartosci rowne
+	//return -1 - nie
 	if (this->size > b.size) {
 		return 1;
 	}
@@ -58,6 +58,7 @@ int BigInt::isValueBiggerThan(BigInt& b){
 }
 
 BigInt::BigInt(std::string input) {
+	long i = 0, size = 0;
 	if (input[0] == '-') {
 		negative = true;
 		input = input.substr(1, input.size());
@@ -65,11 +66,20 @@ BigInt::BigInt(std::string input) {
 	else if (input[0] == '+') {
 		input = input.substr(1, input.size());
 	}
-	this->setSize(input.size());
+	if ((float)input.size() / digits > input.size() / digits) size = input.size() / digits + 1;
+	else size = input.size() / digits;
+
+	this->setSize(size);
 	for (int i = 0; i < this->size; i++) {
-		value[i] = input.at(this->size - i - 1) - '0';
+		if (input.size() >= digits) {
+			this->value[i] = std::stoi(input.substr(input.size() - digits, input.size()));
+			input = input.substr(0, input.size() - digits);
+		}
+		else {
+			this->value[i] = std::stoi(input);
+			input = "";
+		}
 	}
-	this->relocate();
 }
 
 BigInt BigInt::operator=(BigInt& b){
@@ -155,6 +165,7 @@ BigInt BigInt::operator+(BigInt& b){
 			}
 		}
 
+		this->relocate();
 		b.relocate();
 		res.relocate();
 		return res;
@@ -162,6 +173,47 @@ BigInt BigInt::operator+(BigInt& b){
 	else {
 		b.negative = !b.negative;
 		return *this - b;
+	}
+}
+
+BigInt BigInt::operator*(BigInt& b)
+{
+	if (this->size < b.size) return b * (*this);
+	else {
+		long min, max, i = 0, j = 0, k = 0, c = 0;
+		BigInt res = *this;
+		res.relocate(this->size * 2);
+		min = b.size;
+		max = this->size;
+
+		for (i; i < min; i++) {
+			for (j; j < max; j++) {
+				if (i == 0) res.value[j] = 0;
+				res.value[j + k] += (this->value[j] * b.value[i]);
+				res.value[j + k] += c;
+				c = 0;
+				while (res.value[j + k] >= B) {
+					res.value[j + k] -= B;
+					c++;
+				}
+			}
+			while (c != 0) {
+				res.value[j + k] += c;
+				c = 0;
+				while (res.value[j + k] >= B) {
+					res.value[j + k] -= B;
+					c++;
+				}
+				j++;
+			}
+			j = 0;
+			k++;
+		}
+		if (this->negative != b.negative) {
+			res.negative = true;
+		}
+		res.relocate();
+		return res;
 	}
 }
 
@@ -188,6 +240,8 @@ bool BigInt::operator<(BigInt& b){
 				return false;
 			case 1:
 				return true;
+			default:
+				return false;
 			}
 		}
 		else {
@@ -198,31 +252,39 @@ bool BigInt::operator<(BigInt& b){
 				return false;
 			case 1:
 				return false;
+			default:
+				return false;
 			}
 		}
 	}
 }
 
-bool BigInt::operator>(BigInt& b)
-{
+bool BigInt::operator>(BigInt& b){
 	return b < *this;
 }
 
-bool BigInt::operator<=(BigInt& b)
-{
+bool BigInt::operator<=(BigInt& b){
 	return *this < b || *this == b;
 }
 
-bool BigInt::operator>=(BigInt& b)
-{
+bool BigInt::operator>=(BigInt& b){
 	return *this > b || *this == b;
 }
 
-bool BigInt::operator!=(BigInt& b)
-{
+bool BigInt::operator!=(BigInt& b){
 	return !(*this == b);
 }
-
+///////////////////////////////////////////////////////////////////////////////
+BigInt BigInt::pow(BigInt& b){
+	return *this;
+}
+///////////////////////////////////////////////////////////////////////////////
+BigInt BigInt::toBinary(){
+	BigInt res = *this;
+	res.relocate();
+	return *this;
+}
+///////////////////////////////////////////////////////////////////////////////
 bool BigInt::isNegative(){
 	return this->negative;
 }
@@ -236,9 +298,14 @@ int* BigInt::getValue(){
 }
 
 void BigInt::print(){
-	if (negative) std::cout << "-";
+	std::cout << this->toString() << std::endl;
+}
+
+std::string BigInt::toString(){
+	std::string number = "";
+	if (negative) number += "-";
 	for (int i = this->size - 1; i > -1; i--) {
-		std::cout << value[i];
+		number += std::to_string(value[i]);
 	}
-	std::cout << std::endl;
+	return number;
 }

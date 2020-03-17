@@ -1,18 +1,18 @@
 #include "BigInt.h"
 #include <iostream>
 
-void BigInt::setSize(long size){
+void BigInt::setSize(int size){
 	this->size = size;
-	value = new int[size];
+	value = new int32_t[size];
 }
 
-void BigInt::setValue(int* value){
+void BigInt::setValue(std::int32_t* value){
 	this->value = value;
 }
 
-void BigInt::relocate(long size){
-	//wypelniane tablicy zerami w celu rozszerzenia
-	int* newValue = new int[size];
+void BigInt::relocate(int size){
+	//wypelniane tablicy zerami w celu rozszerzenia tablicy
+	int32_t* newValue = new int32_t[size];
 	for (int i = 0; i < this->getSize(); i++) {
 		newValue[i] = this->value[i];
 	}
@@ -25,12 +25,12 @@ void BigInt::relocate(long size){
 
 void BigInt::relocate(){
 	//usuwanie niepotrzebnych wiodacych zer
-	int* newValue;
-	long i = this->getSize() - 1;
+	int32_t* newValue;
+	int i = this->getSize() - 1;
 	while (this->value[i] == 0) {
 		i--;
 	}
-	newValue = new int[i + 1];
+	newValue = new int32_t[i + 1];
 	for (int j = i; j > -1; j--) {
 		newValue[j] = this->value[j];
 	}
@@ -49,7 +49,7 @@ int BigInt::isValueBiggerThan(BigInt& b){
 		return -1;
 	}
 	else {
-		for (long i = this->size - 1; i > -1; i--) {
+		for (int i = this->size - 1; i > -1; i--) {
 			if (this->value[i] > b.value[i]) return 1;
 			else if (this->value[i] < b.value[i]) return -1;
 		}
@@ -58,7 +58,7 @@ int BigInt::isValueBiggerThan(BigInt& b){
 }
 
 BigInt::BigInt(std::string input) {
-	long i = 0, size = 0;
+	int i = 0, size = 0;
 	if (input[0] == '-') {
 		negative = true;
 		input = input.substr(1, input.size());
@@ -80,6 +80,7 @@ BigInt::BigInt(std::string input) {
 			input = "";
 		}
 	}
+	this->relocate();
 }
 
 BigInt BigInt::operator=(BigInt& b){
@@ -96,7 +97,7 @@ BigInt BigInt::operator-(BigInt& b){
 		return *this + b;
 	}
 	else {
-		long max, min, c = 0, i = 0;
+		int max, min, c = 0, i = 0;
 		BigInt res = *this;
 		res.relocate();
 		if (this->isValueBiggerThan(b) == 1) {
@@ -110,6 +111,8 @@ BigInt BigInt::operator-(BigInt& b){
 					res.value[i] += B;
 					c++;
 				}
+
+				std::cout << "Res: " << res.value[i] << " c: " << c << std::endl;
 			}
 			for (i; i < max; i++) {
 				res.value[i] -= c;
@@ -118,6 +121,8 @@ BigInt BigInt::operator-(BigInt& b){
 					res.value[i] += B;
 					c++;
 				}
+
+				std::cout << "Res: " << res.value[i] << " c: " << c << std::endl;
 			}
 			b.relocate();
 			res.relocate();
@@ -133,7 +138,7 @@ BigInt BigInt::operator-(BigInt& b){
 
 BigInt BigInt::operator+(BigInt& b){
 	if (this->negative == b.negative) {
-		long max, min, c = 0, i = 0;
+		int max, min, c = 0, i = 0;
 		BigInt res = *this;
 
 		if (*this > b) {
@@ -151,17 +156,17 @@ BigInt BigInt::operator+(BigInt& b){
 		for (i; i < max; i++) {
 			res.value[i] = this->value[i] + b.value[i] + c;
 			c = 0;
-			while (res.value[i] >= B) {
-				res.value[i] = res.value[i] - B;
-				c++;
+			if (res.value[i] >= B) {
+				c = res.value[i] / B;
+				res.value[i] -= c * B;
 			}
 		}
 		while (c > 0) {
 			res.value[i] = c;
 			c = 0;
-			while (res.value[i] > B) {
-				res.value[i] = res.value[i] - B;
-				c++;
+			if (res.value[i] >= B) {
+				c = res.value[i] / B;
+				res.value[i] -= c * B;
 			}
 		}
 
@@ -180,34 +185,41 @@ BigInt BigInt::operator*(BigInt& b)
 {
 	if (this->size < b.size) return b * (*this);
 	else {
-		long min, max, i = 0, j = 0, k = 0, c = 0;
+		int min, max, i = 0, j = 0;
+		int64_t c = 0;
 		BigInt res = *this;
 		res.relocate(this->size * 2);
+		int64_t* temp = new int64_t[2 * this->size];
+
 		min = b.size;
 		max = this->size;
+		for (int k = 0; k < 2 * max; k++) {
+			temp[k] = 0;
+		}
 
 		for (i; i < min; i++) {
 			for (j; j < max; j++) {
-				if (i == 0) res.value[j] = 0;
-				res.value[j + k] += (this->value[j] * b.value[i]);
-				res.value[j + k] += c;
+				temp[j + i] += static_cast<std::uint64_t>(this->value[j]) * static_cast<std::uint64_t>(b.value[i]) + c;
 				c = 0;
-				while (res.value[j + k] >= B) {
-					res.value[j + k] -= B;
-					c++;
+				if (temp[j + i] >= B) {
+					c = temp[j + i] / B;
+					temp[j + i] = temp[j + i] - c * B;
 				}
+				std::cout << "Res: " << temp[j + i] <<" c: "<< c << std::endl;
 			}
 			while (c != 0) {
-				res.value[j + k] += c;
+				temp[j + i] += c;
 				c = 0;
-				while (res.value[j + k] >= B) {
-					res.value[j + k] -= B;
-					c++;
+				if (temp[j + i] >= B) {
+					c = temp[j + i] / B;
+					temp[j + i] -= c * B;
 				}
 				j++;
 			}
 			j = 0;
-			k++;
+		}
+		for (int m = 0; m < res.size; m++) {
+			res.value[m] = static_cast<std::uint32_t>(temp[m]);
 		}
 		if (this->negative != b.negative) {
 			res.negative = true;
@@ -289,11 +301,11 @@ bool BigInt::isNegative(){
 	return this->negative;
 }
 
-long BigInt::getSize(){
+int BigInt::getSize(){
 	return this->size;
 }
 
-int* BigInt::getValue(){
+std::int32_t* BigInt::getValue(){
 	return this->value;
 }
 
@@ -302,10 +314,15 @@ void BigInt::print(){
 }
 
 std::string BigInt::toString(){
-	std::string number = "";
+	std::string number = "", part = "";
 	if (negative) number += "-";
 	for (int i = this->size - 1; i > -1; i--) {
-		number += std::to_string(value[i]);
+		part = std::to_string(value[i]);
+		while (i != this->size - 1 && part.size() != this->digits) {
+			part = "0" + part;
+		}
+		number += part;
+		number += " ";
 	}
 	return number;
 }

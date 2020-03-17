@@ -1,16 +1,18 @@
 #pragma once
 #include <string>
+#include <cstdint>
 class BigInt{
 private:
 	bool negative = false;
-	long size;
-	int *value;
-	int B = 100000;
-	int digits = 5;
-	//int B = 100000000;
-	void setSize(long size);
-	void setValue(int* value);
-	void relocate(long size);
+	int size;
+	std::int32_t *value;
+	//int B = 10000;
+	//int digits = 4;
+	int B = 1000000000;
+	int digits = 9;
+	void setSize(int size);
+	void setValue(std::int32_t* value);
+	void relocate(int size);
 	void relocate();
 	int isValueBiggerThan(BigInt& b);
 public:
@@ -29,8 +31,8 @@ public:
 	BigInt pow(BigInt& b);
 	BigInt toBinary();
 	bool isNegative();
-	long getSize();
-	int* getValue();
+	int getSize();
+	std::int32_t* getValue();
 	void print();
 	std::string toString();
 };

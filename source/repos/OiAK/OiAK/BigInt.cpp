@@ -83,7 +83,7 @@ BigInt::BigInt(std::string input) {
 	this->relocate();
 }
 
-BigInt BigInt::operator=(BigInt& b){
+BigInt BigInt::operator=(BigInt b){
 	this->negative = b.negative;
 	this->size = b.size;
 	this->value = b.value;
@@ -111,8 +111,6 @@ BigInt BigInt::operator-(BigInt& b){
 					res.value[i] += B;
 					c++;
 				}
-
-				std::cout << "Res: " << res.value[i] << " c: " << c << std::endl;
 			}
 			for (i; i < max; i++) {
 				res.value[i] -= c;
@@ -121,8 +119,6 @@ BigInt BigInt::operator-(BigInt& b){
 					res.value[i] += B;
 					c++;
 				}
-
-				std::cout << "Res: " << res.value[i] << " c: " << c << std::endl;
 			}
 			b.relocate();
 			res.relocate();
@@ -205,7 +201,6 @@ BigInt BigInt::operator*(BigInt& b)
 					c = temp[j + i] / B;
 					temp[j + i] = temp[j + i] - c * B;
 				}
-				std::cout << "Res: " << temp[j + i] <<" c: "<< c << std::endl;
 			}
 			while (c != 0) {
 				temp[j + i] += c;
@@ -229,7 +224,7 @@ BigInt BigInt::operator*(BigInt& b)
 	}
 }
 
-bool BigInt::operator==(BigInt& b){
+bool BigInt::operator==(BigInt b){
 	if (this->size == b.size) {
 		if (this->isValueBiggerThan(b) == 0 && this->negative == b.negative) return true;
 	}
@@ -286,17 +281,16 @@ bool BigInt::operator>=(BigInt& b){
 bool BigInt::operator!=(BigInt& b){
 	return !(*this == b);
 }
-///////////////////////////////////////////////////////////////////////////////
-BigInt BigInt::pow(BigInt& b){
-	return *this;
-}
-///////////////////////////////////////////////////////////////////////////////
-BigInt BigInt::toBinary(){
+
+BigInt BigInt::pow(std::int32_t b){
 	BigInt res = *this;
 	res.relocate();
-	return *this;
+	for (int i = 1; i < b; i++) {
+		res = res * *this;
+	}
+	return res;
 }
-///////////////////////////////////////////////////////////////////////////////
+
 bool BigInt::isNegative(){
 	return this->negative;
 }
@@ -315,6 +309,7 @@ void BigInt::print(){
 
 std::string BigInt::toString(){
 	std::string number = "", part = "";
+	if (this->size == 0) return "0";
 	if (negative) number += "-";
 	for (int i = this->size - 1; i > -1; i--) {
 		part = std::to_string(value[i]);
@@ -326,3 +321,8 @@ std::string BigInt::toString(){
 	}
 	return number;
 }
+
+int BigInt::getB(){
+	return B;
+}
+

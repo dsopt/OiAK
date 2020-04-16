@@ -10,6 +10,13 @@ void BigInt::setValue(std::int32_t* value){
 	this->value = value;
 }
 
+BigInt::BigInt(){
+	negative = false;
+	size = 1;
+	setSize(1);
+	value[0] = 0;
+}
+
 void BigInt::relocate(int size){
 	//wypelniane tablicy zerami w celu rozszerzenia tablicy
 	int32_t* newValue = new int32_t[size];
@@ -81,6 +88,22 @@ BigInt::BigInt(std::string input) {
 		}
 	}
 	this->relocate();
+}
+
+BigInt::BigInt(std::int32_t num){
+	if (num < 0) negative = true;
+	size = 1;
+	setSize(1);
+	value[0] = num;
+}
+
+BigInt::BigInt(std::int64_t num){
+	if (num < 0) negative = true;
+	size = 2;
+	setSize(2);
+	value[0] = num % B;
+	value[1] = num / B;
+	relocate();
 }
 
 BigInt BigInt::operator=(BigInt b){
@@ -194,7 +217,9 @@ BigInt BigInt::operator*(BigInt& b)
 		}
 
 		for (i; i < min; i++) {
+			if (b.value[i] == 0) i++;
 			for (j; j < max; j++) {
+				if (this->value[j] == 0) j++;
 				temp[j + i] += static_cast<std::uint64_t>(this->value[j]) * static_cast<std::uint64_t>(b.value[i]) + c;
 				c = 0;
 				if (temp[j + i] >= B) {
@@ -222,6 +247,71 @@ BigInt BigInt::operator*(BigInt& b)
 		res.relocate();
 		return res;
 	}
+}
+
+BigInt BigInt::operator/(BigInt& b) {
+	BigInt zero = BigInt(0);
+	if (b > * this) return zero;
+	else if (b == *this) return BigInt(1);
+
+	BigInt res = *this;
+	BigInt part = BigInt(0);
+	BigInt p = BigInt(0);
+	BigInt baseInt = BigInt(this->B);
+	BigInt divHelper = BigInt(0);
+	int64_t helper = 0, top = 0, btm = 0;
+	bool found = false;
+	res.relocate();
+
+	for (int i = this->getSize() - 1; i > this->getSize() - b.getSize(); i--) {
+		if (!(part == zero)) part = part * baseInt;
+		p = BigInt(this->value[i]);
+		part = part + p;
+		res.value[i] = 0;
+	}
+
+	for (int i = this->getSize() - b.getSize(); i > -1; i--) {
+		if (!(part == zero)) part = part * baseInt;
+		p = BigInt(this->value[i]);
+		part = part + p;
+		if (part == b) {
+			res.value[i] = 1;
+			part = zero;
+		}
+		else if (part < b) {
+			res.value[i] = 0;
+		}
+		else {
+			found = false;
+			if (part.size > b.size) helper = ((int64_t)part.value[part.size - 1] * (int64_t)this->B + part.value[part.size - 2]) / b.value[b.size - 1];
+			else helper = part.value[part.size - 1] / b.value[b.size - 1];
+			divHelper = BigInt(helper);
+			divHelper = divHelper * b;
+
+			top = helper;
+			btm = 0;
+			if (divHelper > part) {
+				while (!found) {
+					helper = (top + btm) / 2;
+					divHelper = BigInt(helper);
+					divHelper = divHelper * b;
+					if (((divHelper < part) && (divHelper + b > part)) || divHelper == part) {
+						found = true;
+					}
+					else if (divHelper < part) {
+						btm = helper;
+					}
+					else if (divHelper > part) {
+						top = helper;
+					}
+				}
+			}
+			part = part - divHelper;
+			res.value[i] = helper;
+		}
+	}
+	res.relocate();
+	return res;
 }
 
 bool BigInt::operator==(BigInt b){
@@ -289,6 +379,62 @@ BigInt BigInt::pow(std::int32_t b){
 		res = res * *this;
 	}
 	return res;
+}
+
+BigInt BigInt::mod(BigInt& m){
+	BigInt zero = BigInt(0);
+	if (m > * this) return *this;
+	else if (m == *this) return zero;
+
+	BigInt part = BigInt(0);
+	BigInt p = BigInt(0);
+	BigInt baseInt = BigInt(this->B);
+	BigInt divHelper = BigInt(0);
+	int64_t helper = 0, top = 0, btm = 0;
+	bool found = false;
+
+	for (int i = this->getSize() - 1; i > this->getSize() - m.getSize(); i--) {
+		if (!(part == zero)) part = part * baseInt;
+		p = BigInt(this->value[i]);
+		part = part + p;
+	}
+
+	for (int i = this->getSize() - m.getSize(); i > -1; i--) {
+		if (!(part == zero)) part = part * baseInt;
+		p = BigInt(this->value[i]);
+		part = part + p; 
+		if (part == m) {
+			part = zero;
+		}
+		else {
+			found = false;
+			if (part.size > m.size) helper = ((int64_t)part.value[part.size - 1] * (int64_t)this->B + part.value[part.size - 2]) / m.value[m.size - 1];
+			else helper = part.value[part.size - 1] / m.value[m.size - 1];
+			divHelper = BigInt(helper);
+			divHelper = divHelper * m;
+			top = helper;
+			btm = 0;
+			if (divHelper > part) {
+				while (!found) {
+					helper = (top + btm) / 2;
+					divHelper = BigInt(helper);
+					divHelper = divHelper * m;
+					if (((divHelper < part) && (divHelper + m > part)) || divHelper == part) {
+						found = true;
+					}
+					else if (divHelper < part) {
+						btm = helper; 
+					}
+					else if (divHelper > part){
+						top = helper;
+					}
+				}
+			}
+			part = part - divHelper;
+		}
+	}
+	part.relocate();
+	return part;
 }
 
 bool BigInt::isNegative(){

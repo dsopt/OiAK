@@ -6,17 +6,18 @@ private:
 	bool negative = false;
 	int size;
 	std::int32_t *value;
-	//int B = 10000;
-	//int digits = 4;
 	int B = 1000000000;
 	int digits = 9;
-	void relocate(int size);
-	void relocate();
 	int isValueBiggerThan(BigInt& b);
 public:
+	void relocate(int size);
+	void relocate();
 	void setSize(int size);
 	void setValue(std::int32_t* value);
+	BigInt();
 	BigInt(std::string input);
+	BigInt(std::int32_t num);
+	BigInt(std::int64_t num);
 	BigInt operator=(BigInt b);
 	BigInt operator-(BigInt& b);
 	BigInt operator+(BigInt& b);
@@ -29,6 +30,7 @@ public:
 	bool operator>=(BigInt& b);
 	bool operator!=(BigInt& b);
 	BigInt pow(std::int32_t b);
+	BigInt mod(BigInt& m);
 	bool isNegative();
 	int getSize();
 	std::int32_t* getValue();

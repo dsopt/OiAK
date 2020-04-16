@@ -152,10 +152,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BigInt.cpp" />
+    <ClCompile Include="ModularExp.cpp" />
     <ClCompile Include="OiAK.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BigInt.h" />
+    <ClInclude Include="ModularExp.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
